@@ -61,6 +61,17 @@ class _CounterViewState extends State<CounterView> {
                 ),
               ],
             ),
+            const SizedBox(height: 24),
+            const Text("History (5 terakhir):"),
+            const SizedBox(height: 8),
+
+            Expanded(
+              child: ListView(
+                children: _controller.history
+                    .map((e) => ListTile(title: Text(e)))
+                    .toList(),
+              ),
+            ),
           ],
         ),
       ),
