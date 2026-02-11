@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // untuk haptic feedback
 import 'counter_controller.dart';
 
 class CounterView extends StatefulWidget {
@@ -15,7 +16,7 @@ class _CounterViewState extends State<CounterView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Task 1 - Multi-Step Counter")),
+      appBar: AppBar(title: const Text("LogBook Counter (SRP)")),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -48,28 +49,80 @@ class _CounterViewState extends State<CounterView> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: () => setState(() => _controller.increment()),
+                  onPressed: () {
+                    HapticFeedback.heavyImpact();
+                    setState(() => _controller.increment());
+                  },
                   child: const Text("+"),
                 ),
                 ElevatedButton(
-                  onPressed: () => setState(() => _controller.decrement()),
+                  onPressed: () {
+                    HapticFeedback.heavyImpact();
+                    setState(() => _controller.decrement());
+                  },
                   child: const Text("-"),
                 ),
                 ElevatedButton(
-                  onPressed: () => setState(() => _controller.reset()),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text("Konfirmasi Reset"),
+                          content:
+                              const Text("Yakin mau reset counter?"),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text("Batal"),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                HapticFeedback.heavyImpact();
+                                setState(() => _controller.reset());
+                                Navigator.pop(context);
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content:
+                                        Text("Counter berhasil direset"),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                              child: const Text("Ya"),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
                   child: const Text("Reset"),
                 ),
               ],
             ),
+
             const SizedBox(height: 24),
             const Text("History (5 terakhir):"),
             const SizedBox(height: 8),
 
             Expanded(
               child: ListView(
-                children: _controller.history
-                    .map((e) => ListTile(title: Text(e)))
-                    .toList(),
+                children: _controller.history.map((e) {
+                  Color color = Colors.black;
+
+                  if (e.startsWith("+")) {
+                    color = Colors.green;
+                  } else if (e.startsWith("-")) {
+                    color = Colors.red;
+                  } else if (e.startsWith("Reset")) {
+                    color = Colors.grey;
+                  }
+
+                  return ListTile(
+                    title: Text(e, style: TextStyle(color: color)),
+                  );
+                }).toList(),
               ),
             ),
           ],
